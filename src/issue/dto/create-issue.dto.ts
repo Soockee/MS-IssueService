@@ -1,1 +1,7 @@
-export class CreateIssueDto {}
+export class CreateIssueDto {
+    title: string;
+    
+    description: string;
+    
+    projectId: string;
+}

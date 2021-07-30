@@ -19,16 +19,16 @@ export class IssueController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.issueService.findOne(+id);
+    return this.issueService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateIssueDto: UpdateIssueDto) {
-    return this.issueService.update(+id, updateIssueDto);
+    return this.issueService.update(id, updateIssueDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.issueService.remove(+id);
+    return this.issueService.remove(id);
   }
 }
