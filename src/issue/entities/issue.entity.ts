@@ -1,5 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Comment } from './comment.entity';
 @Entity()
 export class Issue {
     @PrimaryGeneratedColumn("uuid")
@@ -13,4 +13,7 @@ export class Issue {
 
     @Column()
     projectId: string;
+
+    @OneToMany(() => Comment, comment => comment.issue)
+    comments: Comment[];
 }
