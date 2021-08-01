@@ -9,9 +9,8 @@ services:
         - POSTGRES_USER=admin
         - POSTGRES_PASSWORD=admin
         - POSTGRES_DB=issues
- 
+  
   pgadmin:
-    container_name: pgadmin
     image: dpage/pgadmin4
     ports:
     - "8080:80"
@@ -20,3 +19,10 @@ services:
     environment:
       - PGADMIN_DEFAULT_EMAIL=admin@admin.com
       - PGADMIN_DEFAULT_PASSWORD=admin
+  
+  rabbit_mq:
+    image: rabbitmq:3-management
+    ports:
+      - 5672:5672
+      - 15672:15672
+

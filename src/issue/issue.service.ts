@@ -6,6 +6,8 @@ import { Issue } from './entities/issue.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Comment } from './entities/comment.entity';
+import { AmqpConnection, RabbitRPC,Nack } from '@golevelup/nestjs-rabbitmq';
+
 @Injectable()
 export class IssueService {
 
@@ -15,12 +17,16 @@ export class IssueService {
 
     @InjectRepository(Comment)
     private commentRepository: Repository<Comment>,
+
+    private readonly amqpConnection: AmqpConnection,
   ){}
 
   async create(createIssueDto: CreateIssueDto) {
     const newIssue = this.issueRepository.create(createIssueDto);
-    
     await this.issueRepository.save(newIssue);
+
+    await this.amqpConnection.publish('news', 'newIssue', newIssue);
+
     return newIssue;
   }
 
@@ -76,4 +82,5 @@ export class IssueService {
 
     throw new HttpException('Issue not found', HttpStatus.NOT_FOUND);
   }
+
 }
