@@ -4,10 +4,33 @@ import { IssueController } from './issue.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Issue } from './entities/issue.entity';
 import { Comment } from './entities/comment.entity';
+import { RabbitMQModule,RabbitMQConfig } from '@golevelup/nestjs-rabbitmq';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MessagingService } from './messaging/messaging.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Issue, Comment])],
+  imports: [
+    ConfigModule,
+    TypeOrmModule.forFeature([Issue, Comment]),
+    RabbitMQModule.forRoot(RabbitMQModule, 
+      {
+        exchanges: [
+          {
+            name: 'news',
+            type: 'topic',
+          },
+          {
+            name: 'issue-service',
+            type: 'topic',
+          },
+        ],
+        uri: 'amqp://guest:guest@localhost:5672',
+        connectionInitOptions: { wait: false },
+      }
+    ),
+  IssueModule,
+],
   controllers: [IssueController],
-  providers: [IssueService]
+  providers: [IssueService, MessagingService]
 })
 export class IssueModule {}
