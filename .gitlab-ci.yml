@@ -1,0 +1,33 @@
+stages:
+  - build
+  - test
+  - release
+
+build:
+  stage: build
+  tags:
+    - npm
+  script:
+    - npm install
+    - npm run build
+
+test:
+  stage: test
+  tags:
+    - npm
+  script:
+    - echo "Execute tests"
+
+# release:
+#   stage: release
+#   tags:
+#     - priv
+#   script:
+#     - docker build -t issue-service .
+#   # only:
+#   #   - master
+
+  
+
+
+  
