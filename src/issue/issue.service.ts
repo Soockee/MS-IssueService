@@ -24,8 +24,8 @@ export class IssueService {
   async create(createIssueDto: CreateIssueDto) {
     const newIssue = this.issueRepository.create(createIssueDto);
     await this.issueRepository.save(newIssue);
-
-    await this.amqpConnection.publish('news', 'newIssue', newIssue);
+    
+    await this.amqpConnection.publish('direct-exchange','project.issue.created', {"uuid": newIssue.id})
 
     return newIssue;
   }
