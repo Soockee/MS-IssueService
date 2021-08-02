@@ -57,9 +57,12 @@ export class IssueService {
 
   async remove(issueId: string) {
     const deleted = await this.issueRepository.delete(issueId);
+
     if (!deleted.affected) {
       throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
     }
+
+    await this.amqpConnection.publish('direct-exchange','project.issue.created', {"uuid": issueId})
   }
 
   async addComment(issueId: string, createCommentDto: CreateCommentDto) {
