@@ -23,6 +23,10 @@ import { MessagingService } from './messaging/messaging.service';
             name: 'issue-service',
             type: 'topic',
           },
+          {
+            name: 'direct-exchange',
+            type: 'direct',
+          },
         ],
         uri: 'amqp://guest:guest@localhost:5672',
         connectionInitOptions: { wait: false },

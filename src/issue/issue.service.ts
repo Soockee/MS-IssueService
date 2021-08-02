@@ -24,8 +24,8 @@ export class IssueService {
   async create(createIssueDto: CreateIssueDto) {
     const newIssue = this.issueRepository.create(createIssueDto);
     await this.issueRepository.save(newIssue);
-
-    await this.amqpConnection.publish('news', 'newIssue', newIssue);
+    
+    await this.amqpConnection.publish('direct-exchange','project.issue.created', {"uuid": newIssue.id})
 
     return newIssue;
   }
@@ -57,9 +57,12 @@ export class IssueService {
 
   async remove(issueId: string) {
     const deleted = await this.issueRepository.delete(issueId);
+
     if (!deleted.affected) {
       throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
     }
+
+    await this.amqpConnection.publish('direct-exchange','project.issue.created', {"uuid": issueId})
   }
 
   async addComment(issueId: string, createCommentDto: CreateCommentDto) {
