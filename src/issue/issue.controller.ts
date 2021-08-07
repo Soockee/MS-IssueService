@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { IssueService } from './issue.service';
 import { CreateIssueDto } from './dto/create-issue.dto';
@@ -26,8 +27,12 @@ export class IssueController {
 
   @UseGuards(JwtAuthGuard)
   @Get('issues')
-  findAll() {
-    return this.issueService.findAll();
+  findAll(@Query('projectId') projectId: string) {
+    if (projectId) {
+      return this.issueService.findAllForProject(projectId);
+    } else {
+      return this.issueService.findAll();
+    }
   }
 
   @UseGuards(JwtAuthGuard)
