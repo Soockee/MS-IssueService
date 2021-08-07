@@ -28,6 +28,9 @@ import { MessagingService } from './messaging/messaging.service';
           {
             name: 'direct-exchange',
             type: 'direct',
+            options: {
+              durable: true
+            }
           },
         ],
         uri: `amqp://${configService.get('RABBIT_USER')}:${configService.get(
