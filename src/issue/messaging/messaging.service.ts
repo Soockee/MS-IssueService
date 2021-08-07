@@ -8,7 +8,7 @@ export class MessagingService {
   private readonly logger = new Logger(MessagingService.name);
 
   @RabbitRPC({
-    exchange: 'issue-service',
+    exchange: 'direct-exchange',
     routingKey: '*',
     queue: 'issues-main',
   })

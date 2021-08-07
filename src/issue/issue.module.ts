@@ -18,19 +18,11 @@ import { MessagingService } from './messaging/messaging.service';
       useFactory: (configService: ConfigService) => ({
         exchanges: [
           {
-            name: 'news',
-            type: 'topic',
-          },
-          {
-            name: 'issue-service',
-            type: 'topic',
-          },
-          {
             name: 'direct-exchange',
             type: 'direct',
             options: {
-              durable: true
-            }
+              durable: true,
+            },
           },
         ],
         uri: `amqp://${configService.get('RABBIT_USER')}:${configService.get(
