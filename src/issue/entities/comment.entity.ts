@@ -3,15 +3,15 @@ import { Issue } from './issue.entity';
 
 @Entity()
 export class Comment {
-    @PrimaryGeneratedColumn("uuid")
-    id: string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @Column()
-    text: string;
+  @Column()
+  text: string;
 
-    @Column("uuid")
-    authorId: string;
+  @Column('uuid')
+  authorId: string;
 
-    @ManyToOne(() =>Issue, issue => issue.comments)
-    issue: Issue;
+  @ManyToOne(() => Issue, (issue) => issue.comments)
+  issue: Issue;
 }

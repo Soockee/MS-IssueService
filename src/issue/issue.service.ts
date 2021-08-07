@@ -1,4 +1,4 @@
-import { Injectable, Inject, HttpStatus, HttpException } from '@nestjs/common';
+import { Injectable, HttpStatus, HttpException } from '@nestjs/common';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
 import { Repository } from 'typeorm';
@@ -6,12 +6,11 @@ import { Issue } from './entities/issue.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Comment } from './entities/comment.entity';
-import { AmqpConnection, RabbitRPC,Nack } from '@golevelup/nestjs-rabbitmq';
+import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 
 @Injectable()
 export class IssueService {
-
-  constructor(    
+  constructor(
     @InjectRepository(Issue)
     private issueRepository: Repository<Issue>,
 
@@ -19,24 +18,28 @@ export class IssueService {
     private commentRepository: Repository<Comment>,
 
     private readonly amqpConnection: AmqpConnection,
-  ){}
+  ) {}
 
   async create(createIssueDto: CreateIssueDto) {
     const newIssue = this.issueRepository.create(createIssueDto);
     await this.issueRepository.save(newIssue);
-    
-    await this.amqpConnection.publish('direct-exchange','project.issue.created', {"uuid": newIssue.id})
+
+    await this.amqpConnection.publish(
+      'direct-exchange',
+      'project.issue.created',
+      { uuid: newIssue.id },
+    );
 
     return newIssue;
   }
 
   findAll(): Promise<Issue[]> {
-    return this.issueRepository.find()
+    return this.issueRepository.find();
   }
 
   async findOne(issueId: string) {
     const issue = await this.issueRepository.findOne(issueId);
-    
+
     if (issue) {
       return issue;
     }
@@ -62,22 +65,28 @@ export class IssueService {
       throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
     }
 
-    await this.amqpConnection.publish('direct-exchange','project.issue.created', {"uuid": issueId})
+    await this.amqpConnection.publish(
+      'direct-exchange',
+      'project.issue.created',
+      { uuid: issueId },
+    );
   }
 
   async addComment(issueId: string, createCommentDto: CreateCommentDto) {
-      const issue = await this.findOne(issueId);
+    const issue = await this.findOne(issueId);
 
-      const newComment = await this.commentRepository.create({
-        ...createCommentDto,
-        issue: issue
-      });
-      await this.commentRepository.save(newComment);
-      return newComment;
+    const newComment = await this.commentRepository.create({
+      ...createCommentDto,
+      issue: issue,
+    });
+    await this.commentRepository.save(newComment);
+    return newComment;
   }
 
   async findAllComments(issueId: string): Promise<Issue> {
-    const issue = this.issueRepository.findOne(issueId, {relations: ['comments']});
+    const issue = this.issueRepository.findOne(issueId, {
+      relations: ['comments'],
+    });
 
     if (issue) {
       return issue;
@@ -85,5 +94,4 @@ export class IssueService {
 
     throw new HttpException('Issue not found', HttpStatus.NOT_FOUND);
   }
-
 }

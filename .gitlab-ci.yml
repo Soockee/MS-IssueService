@@ -1,7 +1,16 @@
 stages:
+  - lint
   - build
   - test
   - release
+
+lint:
+  stage: build
+  tags:
+    - npm
+  script:
+    - npm i eslint
+    - node_modules/eslint/bin/eslint.js "{src,apps,libs,test}/**/*.ts"
 
 build:
   stage: build

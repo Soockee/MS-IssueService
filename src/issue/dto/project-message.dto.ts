@@ -1,14 +1,13 @@
-import { IsString,IsNumber, IsNotEmpty,IsDefined } from 'class-validator';
+import { IsString, IsNumber, IsNotEmpty, IsDefined } from 'class-validator';
 
 export class ProjectMessage {
+  @IsNumber()
+  @IsNotEmpty()
+  @IsDefined()
+  readonly userid: number;
 
-   @IsNumber()
-   @IsNotEmpty()
-   @IsDefined()
-   readonly userid: number;
-
-   @IsString()
-   @IsNotEmpty()
-   @IsDefined()
-   readonly name: string;
+  @IsString()
+  @IsNotEmpty()
+  @IsDefined()
+  readonly name: string;
 }
