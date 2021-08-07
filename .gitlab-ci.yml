@@ -27,16 +27,17 @@ test:
   script:
     - echo "Execute tests"
 
-# release:
-#   stage: release
-#   tags:
-#     - priv
-#   script:
-#     - docker build -t issue-service .
-#   # only:
-#   #   - master
-
-  
-
-
-  
+release:
+  stage: release
+  tags:
+    - microservices
+  variables:
+    UPSTREAM_IMAGE: $THM_DOCKER_REGISTRY/microservices-ss2021/$CI_PROJECT_NAME
+  before_script:
+    - docker login -u gitlab-ci-token -p $DOCKER_CI_TOKEN $THM_DOCKER_REGISTRY
+  script:
+    - docker pull $UPSTREAM_IMAGE:latest || true
+    - docker build --cache-from $UPSTREAM_IMAGE:latest --tag $CI_REGISTRY_IMAGE .
+    - docker push $UPSTREAM_IMAGE:latest
+  only:
+    - master
