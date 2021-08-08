@@ -1,4 +1,4 @@
-import { Injectable, HttpStatus, HttpException } from '@nestjs/common';
+import { Injectable, HttpStatus, HttpException, Logger } from '@nestjs/common';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
 import { Repository } from 'typeorm';
@@ -12,6 +12,8 @@ import { ProjectOperationResponse } from './dto/project-operation-response.dto';
 
 @Injectable()
 export class IssueService {
+  private readonly logger = new Logger(IssueService.name);
+
   constructor(
     @InjectRepository(Issue)
     private issueRepository: Repository<Issue>,
@@ -118,7 +120,10 @@ export class IssueService {
   }
 
   async remove(issueId: string): Promise<void> {
-    const issue = await this.findOne(issueId);
+    const issue = await this.issueRepository.findOne(issueId, {
+      relations: ['comments'],
+    });
+    //this.logger.log(JSON.stringify(issue))
 
     const deleted = await this.issueRepository.delete(issueId);
 
@@ -126,18 +131,39 @@ export class IssueService {
       throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
     }
 
-    await this.amqpConnection.publish(
-      'direct-exchange',
-      'project.issue.deleted',
-      { uuid: issueId },
-    );
+    try {
+      const projectOperationResponse =
+        await this.amqpConnection.request<ProjectOperationResponse>({
+          exchange: 'direct-exchange',
+          routingKey: 'project.issue.deleted',
+          payload: { uuid: issueId },
+          timeout: 5000,
+        });
 
-    await this.amqpConnection.publish('news', 'news.issue.delete', {
-      title: issue.title,
-      description: issue.description,
-      projectId: issue.projectId,
-      issueId: issue.id,
-    });
+      if (projectOperationResponse.success) {
+        await this.amqpConnection.publish('news', 'news.issue.delete', {
+          title: issue.title,
+          description: issue.description,
+          projectId: issue.projectId,
+          issueId: issue.id,
+        });
+        return;
+      } else {
+        throw new Error(
+          'Could not publish issue-deletion to project-service; role back creation;',
+        );
+      }
+    } catch (error) {
+      await this.issueRepository.save(issue);
+      for (const comment of issue.comments) {
+        comment.issue = issue;
+        await this.commentRepository.save(comment);
+      }
+      throw new HttpException(
+        'Could not publish issue-deletion to project-service',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async addComment(
