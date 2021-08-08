@@ -90,7 +90,7 @@ export class IssueService {
     return newComment;
   }
 
-  async findAllComments(issueId: string): Promise<Issue> {
+  async findAllCommentsForIssue(issueId: string): Promise<Issue> {
     const issue = this.issueRepository.findOne(issueId, {
       relations: ['comments'],
     });

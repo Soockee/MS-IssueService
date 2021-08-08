@@ -67,7 +67,8 @@ export class IssueController {
 
   @UseGuards(JwtAuthGuard)
   @Get('issue/:issueId/commments')
-  findAllComments(@Param('issueId') issueId: string) {
-    return this.issueService.findAllComments(issueId);
+  findAllCommentsForIssue(@Param('issueId') issueId: string) {
+    return this.issueService.findAllCommentsForIssue(issueId);
   }
+
 }
