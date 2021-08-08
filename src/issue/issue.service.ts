@@ -112,7 +112,7 @@ export class IssueService {
 
     await this.amqpConnection.publish(
       'direct-exchange',
-      'project.issue.created',
+      'project.issue.deleted',
       { uuid: issueId },
     );
 
