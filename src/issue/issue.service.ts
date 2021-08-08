@@ -34,6 +34,7 @@ export class IssueService {
 
       await this.amqpConnection.publish('news', 'news.issue.createdIssue', {
         ...createIssueDto,
+        issueId: newIssue.id,
       });
 
       return newIssue;
@@ -78,6 +79,7 @@ export class IssueService {
       await this.amqpConnection.publish('news', 'news.issue.updatedIssue', {
         ...updateIssueDto,
         projectId: updatedIssue.projectId,
+        issueId: updatedIssue.id,
       });
       return updatedIssue;
     }
@@ -104,6 +106,7 @@ export class IssueService {
       title: issue.title,
       description: issue.description,
       projectId: issue.projectId,
+      issueId: issue.id,
     });
   }
 
