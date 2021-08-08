@@ -1,5 +1,7 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Status } from '../enum/status';
 import { Comment } from './comment.entity';
+
 @Entity()
 export class Issue {
   @PrimaryGeneratedColumn('uuid')
@@ -10,6 +12,13 @@ export class Issue {
 
   @Column()
   description: string;
+
+  @Column({
+    type: 'enum',
+    enum: Status,
+    default: Status.OPEN,
+  })
+  status: Status;
 
   @Column('uuid')
   projectId: string;
