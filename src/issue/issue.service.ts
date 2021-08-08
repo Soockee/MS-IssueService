@@ -8,7 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Comment } from './entities/comment.entity';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { UpdateScope } from './enum/update-scope';
-import { ProjectOperationResponse } from './dto/project-operation-response.dto';
+// import { ProjectOperationResponse } from './dto/project-operation-response.dto';
 
 @Injectable()
 export class IssueService {
