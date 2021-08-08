@@ -101,4 +101,8 @@ export class IssueService {
 
     throw new HttpException('Issue not found', HttpStatus.NOT_FOUND);
   }
+
+  findAllComments(): Promise<Comment[]> {
+    return this.commentRepository.find();
+  }
 }

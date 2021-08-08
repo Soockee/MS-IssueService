@@ -71,4 +71,9 @@ export class IssueController {
     return this.issueService.findAllCommentsForIssue(issueId);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('comments')
+  findAllComments() {
+    return this.issueService.findAllComments();
+  }
 }
