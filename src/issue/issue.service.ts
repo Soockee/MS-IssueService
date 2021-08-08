@@ -38,18 +38,18 @@ export class IssueService {
     }
 
     try {
-      const projectOperationResponse =
-        await this.amqpConnection.request<ProjectOperationResponse>({
-          exchange: 'direct-exchange',
-          routingKey: 'project.issue.created',
-          payload: {
-            issueId: newIssue.id,
-            projectId: newIssue.projectId,
-          },
-          timeout: 5000,
-        });
+      // const projectOperationResponse =
+      //   await this.amqpConnection.request<ProjectOperationResponse>({
+      //     exchange: 'direct-exchange',
+      //     routingKey: 'project.issue.created',
+      //     payload: {
+      //       issueId: newIssue.id,
+      //       projectId: newIssue.projectId,
+      //     },
+      //     timeout: 5000,
+      //   });
 
-      if (projectOperationResponse.success) {
+      if (true) {
         try {
           await this.amqpConnection.publish('news', 'news.issue.create', {
             ...createIssueDto,
