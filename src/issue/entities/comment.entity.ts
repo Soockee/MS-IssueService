@@ -12,6 +12,6 @@ export class Comment {
   @Column('uuid')
   authorId: string;
 
-  @ManyToOne(() => Issue, (issue) => issue.comments)
+  @ManyToOne(() => Issue, (issue) => issue.comments, { onDelete: 'CASCADE' })
   issue: Issue;
 }
