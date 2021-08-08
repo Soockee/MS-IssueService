@@ -50,10 +50,14 @@ export class IssueService {
         });
 
       if (projectOperationResponse.success) {
-        await this.amqpConnection.publish('news', 'news.issue.create', {
-          ...createIssueDto,
-          issueId: newIssue.id,
-        });
+        try {
+          await this.amqpConnection.publish('news', 'news.issue.create', {
+            ...createIssueDto,
+            issueId: newIssue.id,
+          });
+        } catch (error) {
+          this.logger.error(error);
+        }
         return newIssue;
       } else {
         throw new Error(
@@ -135,30 +139,22 @@ export class IssueService {
     }
 
     try {
-      const projectOperationResponse =
-        await this.amqpConnection.request<ProjectOperationResponse>({
-          exchange: 'direct-exchange',
-          routingKey: 'project.issue.deleted',
-          payload: {
-            issueId: issue.id,
-            projectId: issue.projectId,
-          },
-          timeout: 5000,
-        });
-
-      if (projectOperationResponse.success) {
+      await this.amqpConnection.publish(
+        'direct-exchange',
+        'project.issue.deleted',
+        { uuid: issue.id },
+      );
+      try {
         await this.amqpConnection.publish('news', 'news.issue.delete', {
           title: issue.title,
           description: issue.description,
           projectId: issue.projectId,
           issueId: issue.id,
         });
-        return;
-      } else {
-        throw new Error(
-          'Could not publish issue-deletion to project-service; role back creation;',
-        );
+      } catch (error) {
+        this.logger.error(error);
       }
+      return;
     } catch (error) {
       await this.issueRepository.save(issue);
       for (const comment of issue.comments) {
