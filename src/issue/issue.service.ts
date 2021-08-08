@@ -42,7 +42,10 @@ export class IssueService {
         await this.amqpConnection.request<ProjectOperationResponse>({
           exchange: 'direct-exchange',
           routingKey: 'project.issue.created',
-          payload: { uuid: newIssue.id },
+          payload: {
+            issueId: newIssue.id,
+            projectId: newIssue.projectId,
+          },
           timeout: 5000,
         });
 
@@ -136,7 +139,10 @@ export class IssueService {
         await this.amqpConnection.request<ProjectOperationResponse>({
           exchange: 'direct-exchange',
           routingKey: 'project.issue.deleted',
-          payload: { uuid: issueId },
+          payload: {
+            issueId: issue.id,
+            projectId: issue.projectId,
+          },
           timeout: 5000,
         });
 
