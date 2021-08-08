@@ -37,6 +37,13 @@ export class IssueService {
     return this.issueRepository.find();
   }
 
+  findAllForProject(projectId: string): Promise<Issue[]> {
+    return this.issueRepository
+      .createQueryBuilder('issue')
+      .where('issue.projectId = :projectId', { projectId: projectId })
+      .getMany();
+  }
+
   async findOne(issueId: string) {
     const issue = await this.issueRepository.findOne(issueId);
 
@@ -83,7 +90,7 @@ export class IssueService {
     return newComment;
   }
 
-  async findAllComments(issueId: string): Promise<Issue> {
+  async findAllCommentsForIssue(issueId: string): Promise<Issue> {
     const issue = this.issueRepository.findOne(issueId, {
       relations: ['comments'],
     });
@@ -93,5 +100,9 @@ export class IssueService {
     }
 
     throw new HttpException('Issue not found', HttpStatus.NOT_FOUND);
+  }
+
+  findAllComments(): Promise<Comment[]> {
+    return this.commentRepository.find();
   }
 }

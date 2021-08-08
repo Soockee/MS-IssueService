@@ -11,7 +11,7 @@ export class Issue {
   @Column()
   description: string;
 
-  @Column()
+  @Column('uuid')
   projectId: string;
 
   @OneToMany(() => Comment, (comment) => comment.issue)
