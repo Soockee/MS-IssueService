@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Comment } from './entities/comment.entity';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { UpdateScope } from './enum/update-scope';
+import { ProjectOperationResponse } from './dto/project-operation-response.dto';
 
 @Injectable()
 export class IssueService {
@@ -26,23 +27,38 @@ export class IssueService {
 
     try {
       await this.issueRepository.save(newIssue);
-
-      await this.amqpConnection.publish(
-        'direct-exchange',
-        'project.issue.created',
-        { uuid: newIssue.id },
-      );
-
-      await this.amqpConnection.publish('news', 'news.issue.create', {
-        ...createIssueDto,
-        issueId: newIssue.id,
-      });
-
-      return newIssue;
     } catch (error) {
       console.error(error);
       throw new HttpException(
-        'Could not save issue',
+        'Could not save issue to databse',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    try {
+      const projectOperationResponse =
+        await this.amqpConnection.request<ProjectOperationResponse>({
+          exchange: 'direct-exchange',
+          routingKey: 'project.issue.created',
+          payload: { uuid: newIssue.id },
+          timeout: 5000,
+        });
+
+      if (projectOperationResponse.success) {
+        await this.amqpConnection.publish('news', 'news.issue.create', {
+          ...createIssueDto,
+          issueId: newIssue.id,
+        });
+        return newIssue;
+      } else {
+        throw new Error(
+          'Could not publish issue-creation to project-service; role back creation;',
+        );
+      }
+    } catch (error) {
+      await this.issueRepository.delete(newIssue.id);
+      throw new HttpException(
+        'Could not publish issue-creation to project-service',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
