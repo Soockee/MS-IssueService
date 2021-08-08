@@ -22,15 +22,28 @@ export class IssueService {
 
   async create(createIssueDto: CreateIssueDto) {
     const newIssue = this.issueRepository.create(createIssueDto);
-    await this.issueRepository.save(newIssue);
 
-    await this.amqpConnection.publish(
-      'direct-exchange',
-      'project.issue.created',
-      { uuid: newIssue.id },
-    );
+    try {
+      await this.issueRepository.save(newIssue);
 
-    return newIssue;
+      await this.amqpConnection.publish(
+        'direct-exchange',
+        'project.issue.created',
+        { uuid: newIssue.id },
+      );
+
+      await this.amqpConnection.publish('news', 'news.issue.createdIssue', {
+        ...createIssueDto,
+      });
+
+      return newIssue;
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        'Could not save issue',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   findAll(): Promise<Issue[]> {
@@ -44,7 +57,7 @@ export class IssueService {
       .getMany();
   }
 
-  async findOne(issueId: string) {
+  async findOne(issueId: string): Promise<Issue> {
     const issue = await this.issueRepository.findOne(issueId);
 
     if (issue) {
@@ -54,18 +67,27 @@ export class IssueService {
     throw new HttpException('Issue not found', HttpStatus.NOT_FOUND);
   }
 
-  async update(issueId: string, updateIssueDto: UpdateIssueDto) {
+  async update(
+    issueId: string,
+    updateIssueDto: UpdateIssueDto,
+  ): Promise<Issue> {
     await this.issueRepository.update(issueId, updateIssueDto);
     const updatedIssue = await this.issueRepository.findOne(issueId);
 
     if (updatedIssue) {
+      await this.amqpConnection.publish('news', 'news.issue.updatedIssue', {
+        ...updateIssueDto,
+        projectId: updatedIssue.projectId,
+      });
       return updatedIssue;
     }
 
     throw new HttpException('Issue not found', HttpStatus.NOT_FOUND);
   }
 
-  async remove(issueId: string) {
+  async remove(issueId: string): Promise<void> {
+    const issue = await this.findOne(issueId);
+
     const deleted = await this.issueRepository.delete(issueId);
 
     if (!deleted.affected) {
@@ -77,9 +99,18 @@ export class IssueService {
       'project.issue.created',
       { uuid: issueId },
     );
+
+    await this.amqpConnection.publish('news', 'news.issue.deletedIssue', {
+      title: issue.title,
+      description: issue.description,
+      projectId: issue.projectId,
+    });
   }
 
-  async addComment(issueId: string, createCommentDto: CreateCommentDto) {
+  async addComment(
+    issueId: string,
+    createCommentDto: CreateCommentDto,
+  ): Promise<Comment> {
     const issue = await this.findOne(issueId);
 
     const newComment = await this.commentRepository.create({
@@ -87,6 +118,13 @@ export class IssueService {
       issue: issue,
     });
     await this.commentRepository.save(newComment);
+
+    await this.amqpConnection.publish('news', 'news.issue.createdComment', {
+      issueId: issue.id,
+      projectId: issue.projectId,
+      ...createCommentDto,
+    });
+
     return newComment;
   }
 

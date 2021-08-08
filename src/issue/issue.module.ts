@@ -24,6 +24,13 @@ import { MessagingService } from './messaging/messaging.service';
               durable: true,
             },
           },
+          {
+            name: 'news',
+            type: 'topic',
+            options: {
+              durable: true,
+            },
+          },
         ],
         uri: `amqp://${configService.get('RABBIT_USER')}:${configService.get(
           'RABBIT_PASSWD',
