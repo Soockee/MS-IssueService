@@ -168,6 +168,10 @@ export class IssueService {
     }
   }
 
+  async removeForProject(projectId: string): Promise<void> {
+    await this.issueRepository.delete({ projectId: projectId });
+  }
+
   async addComment(
     issueId: string,
     createCommentDto: CreateCommentDto,
