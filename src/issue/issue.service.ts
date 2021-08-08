@@ -7,6 +7,7 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Comment } from './entities/comment.entity';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
+import { UpdateScope } from './enum/update-scope';
 
 @Injectable()
 export class IssueService {
@@ -32,7 +33,7 @@ export class IssueService {
         { uuid: newIssue.id },
       );
 
-      await this.amqpConnection.publish('news', 'news.issue.createdIssue', {
+      await this.amqpConnection.publish('news', 'news.issue.create', {
         ...createIssueDto,
         issueId: newIssue.id,
       });
@@ -76,10 +77,23 @@ export class IssueService {
     const updatedIssue = await this.issueRepository.findOne(issueId);
 
     if (updatedIssue) {
-      await this.amqpConnection.publish('news', 'news.issue.updatedIssue', {
+      const updateScopes: UpdateScope[] = [];
+
+      if ('title' in updateIssueDto) {
+        updateScopes.push(UpdateScope.TITLE);
+      }
+      if ('description' in updateIssueDto) {
+        updateScopes.push(UpdateScope.DESCRIPTION);
+      }
+      if ('status' in updateIssueDto) {
+        updateScopes.push(UpdateScope.STATUS);
+      }
+
+      await this.amqpConnection.publish('news', 'news.issue.update', {
         ...updateIssueDto,
         projectId: updatedIssue.projectId,
         issueId: updatedIssue.id,
+        updateScopes: updateScopes,
       });
       return updatedIssue;
     }
@@ -102,7 +116,7 @@ export class IssueService {
       { uuid: issueId },
     );
 
-    await this.amqpConnection.publish('news', 'news.issue.deletedIssue', {
+    await this.amqpConnection.publish('news', 'news.issue.delete', {
       title: issue.title,
       description: issue.description,
       projectId: issue.projectId,
@@ -122,9 +136,10 @@ export class IssueService {
     });
     await this.commentRepository.save(newComment);
 
-    await this.amqpConnection.publish('news', 'news.issue.createdComment', {
+    await this.amqpConnection.publish('news', 'news.issue.update', {
       issueId: issue.id,
       projectId: issue.projectId,
+      updateScopes: [UpdateScope.COMMENT],
       ...createCommentDto,
     });
 
