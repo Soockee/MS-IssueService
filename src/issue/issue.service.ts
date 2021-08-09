@@ -49,6 +49,15 @@ export class IssueService {
       //     timeout: 5000,
       //   });
 
+      await this.amqpConnection.publish(
+        'direct-exchange',
+        'project.issue.created',
+        {
+          issueId: newIssue.id,
+          projectId: newIssue.projectId,
+        },
+      );
+
       if (true) {
         try {
           await this.amqpConnection.publish('news', 'news.issue.create', {
